@@ -2,20 +2,25 @@
   <el-container class="layout">
     <el-header class="header">
       <div class="left">
-        <i></i>
+        <i @click="isCollapse = !isCollapse" style="font-size: 20px;" class="el-icon-s-fold"></i>
         <img src="../../assets/layout_icon.png" class="marginlr" alt />
         <span class="title">黑马面面</span>
       </div>
       <div class="right">
-        <!-- <img src alt /> -->
-        <span class="name">xx 欢迎你</span>
+        <img :src="avatar" alt="">
+        <span class="name">{{username}} 欢迎你</span>
         <el-button type="primary" @click="logout">退出</el-button>
       </div>
     </el-header>
 
     <el-container>
       <el-aside width="auto">
-        <el-menu default-active="/layout/user" class="el-menu-vertical-demo" router >
+        <el-menu
+          default-active="/layout/user"
+          class="el-menu-vertical-demo"
+          router
+          :collapse="isCollapse"
+        >
           <el-menu-item index="/layout/chart">
             <i class="el-icon-pie-chart"></i>
             <span slot="title">数据预览</span>
@@ -39,25 +44,58 @@
         </el-menu>
       </el-aside>
       <el-main style="background-color:#e8e9ec">
-        <router-view></router-view>xxxx
+        <router-view></router-view>
       </el-main>
-      
     </el-container>
   </el-container>
 </template>
 
 <script>
+import { removeToken } from "../../utils/token";
 export default {
   data() {
     return {
-      
-    }
+      avatar: "", //用户头像
+      username: "", //呢称
+      isCollapse: false //是否收起折叠菜单
+    };
+  },
+  created() {
+    this.getUserInfoData();
   },
   methods: {
-    logout(){
-
+    //获取用户信息
+    async getUserInfoData() {
+      const res = await this.$axios.get("/info", {
+        // headers: {
+        //   token: getToken(),
+        // },
+      });
+      if (res.data.code == 200) {
+        this.avatar = process.env.VUE_APP_BASEURL + '/' + res.data.data.avatar;
+        this.username = res.data.data.username;
+      } else if (res.data.code == 206) {
+        // 删除token
+        // 跳转回登录页面
+      }
+    },
+    //退出
+    logout() {
+      this.$confirm("确定退出吗？", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(async () => {
+          const res = await this.$axios.get("/logout");
+          if (res.data.code == 200) {
+            removeToken();
+            this.$router.push("/login");
+          }
+        })
+        .catch(() => {});
     }
-  },
+  }
 };
 </script>
 
@@ -103,7 +141,7 @@ export default {
     padding-left: 0;
     background-color: #fff;
   }
-  .el-menu-vertical-demo:not(.el-menu--collapse){
+  .el-menu-vertical-demo:not(.el-menu--collapse) {
     width: 200px;
     min-height: 400px;
   }
