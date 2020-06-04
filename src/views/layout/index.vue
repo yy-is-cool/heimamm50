@@ -16,7 +16,7 @@
     <el-container>
       <el-aside width="auto">
         <el-menu
-          default-active="/layout/user"
+          :default-active="defaultActive"
           class="el-menu-vertical-demo"
           router
           :collapse="isCollapse"
@@ -57,11 +57,13 @@ export default {
     return {
       avatar: "", //用户头像
       username: "", //呢称
-      isCollapse: false //是否收起折叠菜单
+      isCollapse: false,//是否收起折叠菜单
+      defaultActive:''//菜单默认选项中的值
     };
   },
   created() {
     this.getUserInfoData();
+    this.defaultActive = this.$route.fullPath
   },
   methods: {
     //获取用户信息

@@ -2,7 +2,7 @@
   <div>
     <!-- 搜索部分 -->
     <el-card>
-      <el-form inline label-width="80px" :model="searchForm">
+      <el-form inline label-width="80px" :model="searchForm" ref="searchFormRef">
         <el-form-item label="用户名称" prop="username">
           <el-input style="width:150px" v-model="searchForm.username"></el-input>
         </el-form-item>
@@ -22,8 +22,8 @@
 
         <el-form-item>
           <el-button type="primary" @click="search">搜索</el-button>
-          <el-button type="default">清除</el-button>
-          <el-button type="primary">+新增用户</el-button>
+          <el-button type="default" @click="clear">清除</el-button>
+          <el-button type="primary" @click="addUser">+新增用户</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -40,18 +40,18 @@
         <el-table-column label="备注" prop="remark"></el-table-column>
         <el-table-column label="转态">
           <template slot-scope="scope">
-            <span v-if="scope.row.status == 0" style="color:red">启用</span>
-            <span v-if="scope.row.status == 1" style="color:blue">禁用</span>
+            <span v-if="scope.row.status == 0" style="color:red">禁用</span>
+            <span v-if="scope.row.status == 1" style="color:blue">启用</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="280">
           <template slot-scope="scope">
-            <el-button type="primary">编辑</el-button>
+            <el-button type="primary" @click="editUser">编辑</el-button>
             <el-button
               :type="scope.row.status == 0 ? 'succes' : 'info'"
               @click="changeStatus(scope.row.id)"
             >{{scope.row.status == 0 ? '启用':'禁用'}}</el-button>
-            <el-button type="default" @click="deleteUser(scope.row.id,scope.row.id)">删除</el-button>
+            <el-button type="default" @click="deleteUser(scope.row.id,scope.row.username)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -69,11 +69,21 @@
         ></el-pagination>
       </div>
     </el-card>
+    <!-- 使用子组件 -->
+    <UserEdit ref="userEditRef"></UserEdit>
   </div>
 </template>
 
 <script>
+//导入编辑，新增 子组件
+import UserEdit from "./addUser_or_editUser";
+
 export default {
+  // 注册
+  components: {
+    UserEdit
+  },
+
   data() {
     return {
       searchForm: {
@@ -126,6 +136,17 @@ export default {
       this.getUserListData();
     },
 
+    clear() {
+      //方法1
+      // this.searchForm.username = '',
+      // this.searchForm.email = '',
+      // this.searchForm.role_id = '',
+
+      //方法2
+      this.$refs.searchFormRef.resetFields();
+
+      this.search();
+    },
     async changeStatus(id) {
       const res = await this.$axios({
         url: "/user/status",
@@ -142,6 +163,41 @@ export default {
         //重新查询
         this.search();
       }
+    },
+
+    //删除用户
+    deleteUser(id, username) {
+      this.$confirm(`此操作将删除${username}, 是否继续?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(async () => {
+        const res = await this.$axios.post("/user/remove", { id });
+
+        if (res.data.code == 200) {
+          this.$message({
+            type: "success",
+            message: "删除成功!"
+          });
+
+          //重新刷新
+          this.search();
+        }
+      });
+    },
+
+
+    //新增用户
+    addUser() {
+      this.$refs.userEditRef.dialogVisible = true;
+      this.$refs.userEditRef.mode = "add";
+    },
+
+    editUser(){
+      this.$refs.userEditRef.dialogVisible = true;
+      this.$refs.userEditRef.mode = "edit";
+
+      JOSN.parent
     }
   }
 };
