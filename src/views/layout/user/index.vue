@@ -46,7 +46,7 @@
         </el-table-column>
         <el-table-column label="操作" width="280">
           <template slot-scope="scope">
-            <el-button type="primary" @click="editUser">编辑</el-button>
+            <el-button type="primary" @click="editUser(scope.row)">编辑</el-button>
             <el-button
               :type="scope.row.status == 0 ? 'succes' : 'info'"
               @click="changeStatus(scope.row.id)"
@@ -186,18 +186,37 @@ export default {
       });
     },
 
-
     //新增用户
     addUser() {
       this.$refs.userEditRef.dialogVisible = true;
       this.$refs.userEditRef.mode = "add";
+
+      this.$refs.userEditRef.form = {
+        username: "", // 用户名
+        email: "", // 邮箱
+        phone: "", // 手机号
+        role_id: "", // 角色 1：超级管理员 2：管理员 3：老师 4：学生
+        status: "", // 状态 1：启用 0：禁用
+        remark: "" // 备注
+      };
+
+      this.$nextTick(() => {
+        // dialog中的form表单渲染完毕之后，会自动执行该回调函数
+        this.$refs.userEditRef.$refs.formRef.clearValidate();
+
+        // 要想使用 clearValidate 和 resetFields 需要给el-form-item 设置prop
+        // this.$refs.userEditRef.$refs.formRef.resetFields()
+      });
     },
 
-    editUser(){
+    editUser(row) {
       this.$refs.userEditRef.dialogVisible = true;
       this.$refs.userEditRef.mode = "edit";
 
-      JOSN.parent
+      this.$refs.userEditRef.form =JSON.parse(JSON.stringify(row));
+      this.$nextTick(()=>{
+        this.$refs.userEditRef.$refs.formRef.clearValidate()
+      })
     }
   }
 };

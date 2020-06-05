@@ -161,6 +161,7 @@ export default {
           res = await this.$axios.post("/user/add", this.form);
         } else {
           //修改编辑用户
+          res = await this.$axios.post('/user/edit',this.form)
         }
 
         if (res.data.code == 200) {
